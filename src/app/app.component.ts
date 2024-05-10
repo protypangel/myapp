@@ -15,14 +15,20 @@ export class AppComponent implements OnInit {
     private changeDetector: ChangeDetectorRef
   ) {}
   ngOnInit(): void {
-    this.service.pokemonsObserver.subscribe((data) => {
-      data.observers.forEach((observer) =>
-        observer.subscribe((pokemon) => {
-          this.pokemons.push(pokemon);
-          this.changeDetector.detectChanges();
-          // console.log(pokemon.name);
-        })
-      );
-    });
+    for (let index = 0; index <= 10; index++) {
+      setTimeout(() => {
+        console.log('here');
+        this.pokemons.push(new Pokemon(-1, `${index}`, null, null, null));
+      }, 1000 * index);
+    }
+    // this.service.pokemonsObserver.subscribe((data) => {
+    //   data.observers.forEach((observer) =>
+    //     observer.subscribe((pokemon) => {
+    //       this.pokemons.push(pokemon);
+    //       this.changeDetector.detectChanges();
+    //       // console.log(pokemon.name);
+    //     })
+    //   );
+    // });
   }
 }
