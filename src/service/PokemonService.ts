@@ -1,35 +1,44 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Pokemon, PokemonImage, PokemonStat } from '../model/Pokemon';
-import { Subscription } from '../model/Subscription';
+import { Observable, map } from 'rxjs';
 
+export interface PokemonServiceData {
+  observers: Observable<Pokemon>[];
+  size: number;
+}
 @Injectable({
   providedIn: 'root',
 })
 export class PokemonService {
-  pokemonsSubscription: Subscription<Pokemon> = new Subscription();
+  pokemonsObserver: Observable<PokemonServiceData>;
   constructor(private http: HttpClient) {
-    this.http
+    this.pokemonsObserver = this.http
       .get('https://pokeapi.co/api/v2/pokemon?limit=-1')
-      .subscribe(async (response: any) => {
-        response.results.forEach((result) => this.getPokemon(result.url));
-      });
+      .pipe(
+        map((response: any) => {
+          const data: PokemonServiceData = {
+            observers: response.results
+              // .filter((x, index) => index <= 10)
+              .map((result: any) => this.getPokemon(result.url)),
+            size: response.count,
+          };
+          return data;
+        })
+      );
   }
-  private getPokemon(url: string): void {
-    const promise: Promise<Pokemon> = new Promise((resolve, reject) => {
-      this.http.get(url).subscribe({
-        next: (json: any) => {
-          const pokemon: Pokemon = new Pokemon(
-            json.order,
-            json.name,
-            PokemonImage.OfPokeApi(json.sprites.other),
-            json.types.map((type) => type.type.name),
-            PokemonStat.OfPokeApi(json.stats)
-          );
-          resolve(pokemon);
-        },
-      });
-    });
-    promise.then((value) => (this.pokemonsSubscription.value = value));
+  private getPokemon(url: string): Observable<Pokemon> {
+    return this.http.get<any>(url).pipe(
+      map((json: any) => {
+        const pokemon: Pokemon = new Pokemon(
+          json.order,
+          json.name,
+          PokemonImage.OfPokeApi(json.sprites.other),
+          json.types.map((type) => type.type.name),
+          PokemonStat.OfPokeApi(json.stats)
+        );
+        return pokemon;
+      })
+    );
   }
 }

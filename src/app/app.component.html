@@ -1,1 +1,6 @@
-<p *ngFor="let pokemon of pokemons">{{ pokemon.name }}</p>
+<!-- <app-pokemon 
+    *ngFor="let pokemon of pokemons | async" 
+    [pokemon]="pokemon"/> -->
+<div *ngFor="let pokemon of pokemons">
+  {{ pokemon.name }}
+</div>

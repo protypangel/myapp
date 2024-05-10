@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { PokemonService } from '../service/PokemonService';
 import { Pokemon } from '../model/Pokemon';
 
@@ -10,12 +10,19 @@ import { Pokemon } from '../model/Pokemon';
 export class AppComponent implements OnInit {
   title = 'myapp';
   pokemons: Pokemon[] = [];
-  constructor(private service: PokemonService) {}
+  constructor(
+    private service: PokemonService,
+    private changeDetector: ChangeDetectorRef
+  ) {}
   ngOnInit(): void {
-    this.service.pokemonsSubscription.subscribe((latest, alls) => {
-      // console.log('1-', latest.name);
-      if (this.pokemons.length > 1) return;
-      this.pokemons.push(latest);
+    this.service.pokemonsObserver.subscribe((data) => {
+      data.observers.forEach((observer) =>
+        observer.subscribe((pokemon) => {
+          this.pokemons.push(pokemon);
+          this.changeDetector.detectChanges();
+          // console.log(pokemon.name);
+        })
+      );
     });
   }
 }
